@@ -9,6 +9,7 @@ public class BallController : MonoBehaviour
 	public float			m_BounceDegradePercentage = 0.1f;
 	public float			m_GroundBouncePercentage = 0.5f;
 	public float			m_GroundBounceSpeed = 0.5f;
+	public float			m_BounceMomentumDegradeRate = 0.7f;
 
 	public float 			m_Gravity = 0.1f;
 	public float			m_MaxHitHeight = 10.0f;
@@ -17,8 +18,10 @@ public class BallController : MonoBehaviour
 
 	private float 			m_currBallHeight = 0f;
 	private float			m_bounceHeight = 0f;
+	private float 			m_bounceMomentum = 0f;
 
 	private bool			m_isBouncing = false;
+	private int				m_bounceCount = 0;
 
 	// Use this for initialization
 	void Start () 
@@ -28,30 +31,48 @@ public class BallController : MonoBehaviour
 		m_bounceHeight = m_MaxHitHeight;
 	}
 	
+	private void Bounce()
+	{
+		m_isBouncing = true;
+		m_bounceCount++;
+
+		rigidbody2D.velocity *= (1.0f - m_BounceDegradePercentage );
+
+		float targetBounceHeight = m_bounceHeight * m_GroundBouncePercentage;
+		m_bounceMomentum = Mathf.Lerp( m_currBallHeight, targetBounceHeight, m_GroundBounceSpeed );
+
+		m_bounceHeight = targetBounceHeight;
+
+	}
+
 	// Update is called once per frame
 	void Update () 
 	{
-		if( m_currBallHeight > 0f && !m_isBouncing )
+		//add gravity
+		m_currBallHeight = Mathf.Clamp( m_currBallHeight - m_Gravity, 0f, m_MaxHitHeight );
+
+		if( m_currBallHeight <= 0f )
 		{
-			m_currBallHeight -= m_Gravity;
+			if( m_bounceHeight > 0f )
+				Bounce();
+		}
+
+		if( m_bounceCount >= 2 )
+		{
+			SetBallColor( Color.red );
 		}
 		else
 		{
-			if( m_isBouncing == false )
-			{
-				rigidbody2D.velocity *= (1.0f - m_BounceDegradePercentage );
-			}
-
-			m_currBallHeight = Mathf.Lerp( m_currBallHeight, m_bounceHeight * m_GroundBouncePercentage, m_GroundBounceSpeed );
-			m_isBouncing = true;
-
-			if( m_currBallHeight > (m_bounceHeight * m_GroundBouncePercentage ) || Mathf.Approximately(m_currBallHeight, m_bounceHeight * m_GroundBouncePercentage ))
-		   	{
-				m_isBouncing = false;
-				m_bounceHeight = m_currBallHeight;
-			}
+			SetBallColor( Color.white );
 		}
 
+		if( m_bounceMomentum > 0f )
+		{
+			m_currBallHeight += m_bounceMomentum;
+			m_bounceMomentum *= m_BounceMomentumDegradeRate;
+		}
+
+		//update shadow position
 		Vector3 currShadowPos = m_Shadow.localPosition;
 		currShadowPos.y = m_MaxShadowDistance * ( m_currBallHeight/m_MaxHitHeight ) * -1f;
 
@@ -61,9 +82,21 @@ public class BallController : MonoBehaviour
 	public void HitBall( float strength, float strengthPercentage, Vector2 direction )
 	{
 		rigidbody2D.velocity = direction * strength;
-		m_currBallHeight = m_MaxHitHeight;
-		m_bounceHeight = m_currBallHeight;
-		m_isBouncing = false;
+
+		float hitHeight = Mathf.Clamp( m_MaxHitHeight, m_MinHitHeight, m_MaxHitHeight );
+
+		m_bounceHeight = hitHeight;
+		m_bounceMomentum = Mathf.Lerp( m_currBallHeight, hitHeight, m_GroundBounceSpeed  );
+
+		Debug.Log( m_bounceMomentum );
+
+		m_bounceCount = 0;
+	}
+
+	private void SetBallColor( Color color )
+	{
+		SpriteRenderer spr = transform.GetComponent<SpriteRenderer>();
+		spr.color = color;
 	}
 
 	void OnCollisionEnter2D( Collision2D collision )
