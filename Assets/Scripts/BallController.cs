@@ -5,7 +5,8 @@ public class BallController : MonoBehaviour
 {
 	public Vector2 			m_initialVelocity;
 
-	public Transform		m_Shadow;
+	public Transform		m_ShadowObj;
+	public Transform		m_BounceIndicatorObj;
 	public float			m_BounceDegradePercentage = 0.1f;
 	public float			m_GroundBouncePercentage = 0.5f;
 	public float			m_GroundBounceSpeed = 0.5f;
@@ -33,6 +34,11 @@ public class BallController : MonoBehaviour
 	
 	private void Bounce()
 	{
+		if( m_bounceCount <= 1 )
+		{
+			Instantiate( m_BounceIndicatorObj.gameObject, transform.position, transform.rotation );
+		}
+
 		m_isBouncing = true;
 		m_bounceCount++;
 
@@ -53,7 +59,7 @@ public class BallController : MonoBehaviour
 
 		if( m_currBallHeight <= 0f )
 		{
-			if( m_bounceHeight > 0f )
+			if( Mathf.Round( m_bounceHeight ) > 0f )
 				Bounce();
 		}
 
@@ -73,10 +79,10 @@ public class BallController : MonoBehaviour
 		}
 
 		//update shadow position
-		Vector3 currShadowPos = m_Shadow.localPosition;
+		Vector3 currShadowPos = m_ShadowObj.localPosition;
 		currShadowPos.y = m_MaxShadowDistance * ( m_currBallHeight/m_MaxHitHeight ) * -1f;
 
-		m_Shadow.localPosition = currShadowPos;
+		m_ShadowObj.localPosition = currShadowPos;
 	}
 
 	public void HitBall( float strength, float strengthPercentage, Vector2 direction )
@@ -86,6 +92,7 @@ public class BallController : MonoBehaviour
 		float hitHeight = Mathf.Clamp( m_MaxHitHeight, m_MinHitHeight, m_MaxHitHeight );
 
 		m_bounceHeight = hitHeight;
+		m_currBallHeight = 1.0f;
 		m_bounceMomentum = Mathf.Lerp( m_currBallHeight, hitHeight, m_GroundBounceSpeed  );
 
 		Debug.Log( m_bounceMomentum );
