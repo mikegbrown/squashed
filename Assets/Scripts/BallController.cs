@@ -34,10 +34,7 @@ public class BallController : MonoBehaviour
 	
 	private void Bounce()
 	{
-		if( m_bounceCount <= 1 )
-		{
-			Instantiate( m_BounceIndicatorObj.gameObject, transform.position, transform.rotation );
-		}
+		Instantiate( m_BounceIndicatorObj.gameObject, transform.position, transform.rotation );
 
 		m_isBouncing = true;
 		m_bounceCount++;
