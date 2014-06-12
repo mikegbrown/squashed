@@ -20,8 +20,7 @@ public class BallController : MonoBehaviour
 	private float 			m_currBallHeight = 0f;
 	private float			m_bounceHeight = 0f;
 	private float 			m_bounceMomentum = 0f;
-
-	private bool			m_isBouncing = false;
+	
 	private int				m_bounceCount = 0;
 
 	// Use this for initialization
@@ -30,29 +29,34 @@ public class BallController : MonoBehaviour
 		rigidbody2D.velocity = m_initialVelocity;
 		m_currBallHeight = m_MaxHitHeight;
 		m_bounceHeight = m_MaxHitHeight;
+
+		m_bounceMomentum = 5.0f;
 	}
 	
 	private void Bounce()
 	{
-		Instantiate( m_BounceIndicatorObj.gameObject, transform.position, transform.rotation );
+		GameObject bounceMarker = (GameObject)Instantiate( m_BounceIndicatorObj.gameObject, transform.position, transform.rotation );
+		bounceMarker.transform.parent = transform;
 
-		m_isBouncing = true;
 		m_bounceCount++;
 
 		rigidbody2D.velocity *= (1.0f - m_BounceDegradePercentage );
 
 		float targetBounceHeight = m_bounceHeight * m_GroundBouncePercentage;
 		m_bounceMomentum = Mathf.Lerp( m_currBallHeight, targetBounceHeight, m_GroundBounceSpeed );
+		Debug.Log(m_bounceMomentum);
 
 		m_bounceHeight = targetBounceHeight;
 
 	}
 
 	// Update is called once per frame
-	void Update () 
+	void FixedUpdate () 
 	{
+		m_bounceMomentum = Mathf.Clamp( m_bounceMomentum - m_Gravity, -m_Gravity, m_MaxHitHeight );
+
 		//add gravity
-		m_currBallHeight = Mathf.Clamp( m_currBallHeight - m_Gravity, 0f, m_MaxHitHeight );
+		m_currBallHeight = Mathf.Clamp( m_currBallHeight + m_bounceMomentum, 0f, m_MaxHitHeight );
 
 		if( m_currBallHeight <= 0f )
 		{
@@ -67,12 +71,6 @@ public class BallController : MonoBehaviour
 		else
 		{
 			SetBallColor( Color.white );
-		}
-
-		if( m_bounceMomentum > 0f )
-		{
-			m_currBallHeight += m_bounceMomentum;
-			m_bounceMomentum *= m_BounceMomentumDegradeRate;
 		}
 
 		//update shadow position
@@ -90,7 +88,7 @@ public class BallController : MonoBehaviour
 
 		m_bounceHeight = hitHeight;
 		m_currBallHeight = 1.0f;
-		m_bounceMomentum = Mathf.Lerp( m_currBallHeight, hitHeight, m_GroundBounceSpeed  );
+		m_bounceMomentum = Mathf.Clamp( strength, 4.0f, 10.0f );
 
 		Debug.Log( m_bounceMomentum );
 
