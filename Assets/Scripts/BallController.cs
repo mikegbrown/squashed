@@ -73,9 +73,11 @@ public class BallController : MonoBehaviour
 			SetBallColor( Color.white );
 		}
 
+
+
 		//update shadow position
 		Vector3 currShadowPos = m_ShadowObj.localPosition;
-		currShadowPos.y = m_MaxShadowDistance * ( m_currBallHeight/m_MaxHitHeight ) * -1f;
+		currShadowPos.y = m_MaxShadowDistance * ( m_currBallHeight/m_MaxHitHeight ) * 1f;
 
 		m_ShadowObj.localPosition = currShadowPos;
 	}
